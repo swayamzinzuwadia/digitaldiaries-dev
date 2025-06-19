@@ -11,6 +11,7 @@ import { BookingsPage } from "./pages/BookingsPage";
 import { CheckoutPage } from "./pages/CheckoutPage";
 import { Modal } from "./components/ui/Modal";
 import { AuthModal } from "./components/AuthModal";
+import { AdminPanel } from "./pages/AdminPanel";
 
 function App() {
   const [showAuthModal, setShowAuthModal] = React.useState(false);
@@ -33,6 +34,7 @@ function App() {
                 <Route path="/screens" element={<ScreensPage />} />
                 <Route path="/bookings" element={<BookingsPage />} />
                 <Route path="/checkout/:bookingId" element={<CheckoutPage />} />
+                <Route path="/admin" element={<AdminPanel />} />
               </Routes>
             </main>
             <Footer />

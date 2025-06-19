@@ -86,15 +86,14 @@ export const CheckoutPage: React.FC = () => {
     try {
       await updateDoc(doc(db, "bookings", booking.id), {
         paymentProof: paymentProof.trim(),
-        status: "paid",
         paidAt: new Date(),
       });
 
-      toast.success("Payment proof submitted successfully! 🎉");
+      toast.success(
+        "Payment proof submitted successfully! 🎉 Your booking will be confirmed by admin soon."
+      );
       setBooking((prev) =>
-        prev
-          ? { ...prev, status: "paid", paymentProof: paymentProof.trim() }
-          : null
+        prev ? { ...prev, paymentProof: paymentProof.trim() } : null
       );
     } catch (error) {
       toast.error("Failed to submit payment proof");
@@ -246,94 +245,63 @@ export const CheckoutPage: React.FC = () => {
             transition={{ duration: 0.8, delay: 0.4 }}
           >
             <Card>
-              {booking.status === "paid" ? (
-                <div className="text-center">
-                  <CheckCircle
-                    className="mx-auto text-green-500 mb-4"
-                    size={64}
-                  />
-                  <h2 className="text-2xl font-bold mb-4 text-green-500">
-                    Payment Completed!
-                  </h2>
-                  <p className="text-gray-600 dark:text-gray-300 mb-6">
-                    Your payment has been received and your booking is
-                    confirmed.
-                  </p>
-                  {booking.paymentProof && (
-                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 mb-4">
-                      <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
-                        Payment Proof:
+              {/* Always show payment section unless admin confirms */}
+              <>
+                <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
+                  Payment Information
+                </h2>
+
+                <div className="mb-6">
+                  <div className="bg-gradient-to-r from-pink-50 to-rose-50 dark:from-pink-900/20 dark:to-rose-900/20 rounded-lg p-6 mb-6">
+                    <div className="flex items-center mb-4">
+                      <QrCode className="text-pink-500 mr-2" size={24} />
+                      <h3 className="text-lg font-semibold">
+                        Scan QR Code to Pay
+                      </h3>
+                    </div>
+                    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 text-center">
+                      <div className="w-48 h-48 mx-auto bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center mb-4">
+                        <QrCode size={120} className="text-gray-400" />
+                      </div>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">
+                        Scan this QR code with your payment app
                       </p>
-                      <p className="text-xs font-mono bg-white dark:bg-gray-900 p-2 rounded border break-all">
-                        {booking.paymentProof}
+                      <p className="text-lg font-bold text-pink-500 mt-2">
+                        {formatPrice(booking.price)}
                       </p>
                     </div>
-                  )}
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <Upload className="inline mr-2" size={16} />
+                      Paste Payment Proof / QR Code
+                    </label>
+                    <textarea
+                      value={paymentProof}
+                      onChange={(e) => setPaymentProof(e.target.value)}
+                      placeholder="Paste your payment confirmation code, transaction ID, or QR code data here..."
+                      className="w-full px-3 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-200 min-h-[100px] resize-vertical"
+                    />
+                  </div>
+
                   <Button
-                    onClick={() => navigate("/bookings")}
+                    onClick={handlePaymentSubmit}
+                    disabled={!paymentProof.trim() || uploading}
                     className="w-full"
                   >
-                    Back to Bookings
+                    {uploading ? "Submitting..." : "Submit Payment Proof"}
                   </Button>
+
+                  <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
+                    After payment, paste your transaction ID or payment
+                    confirmation here. Our team will verify and confirm your
+                    booking within 24 hours.
+                  </p>
                 </div>
-              ) : (
-                <>
-                  <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
-                    Payment Information
-                  </h2>
-
-                  <div className="mb-6">
-                    <div className="bg-gradient-to-r from-pink-50 to-rose-50 dark:from-pink-900/20 dark:to-rose-900/20 rounded-lg p-6 mb-6">
-                      <div className="flex items-center mb-4">
-                        <QrCode className="text-pink-500 mr-2" size={24} />
-                        <h3 className="text-lg font-semibold">
-                          Scan QR Code to Pay
-                        </h3>
-                      </div>
-                      <div className="bg-white dark:bg-gray-800 rounded-lg p-4 text-center">
-                        <div className="w-48 h-48 mx-auto bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center mb-4">
-                          <QrCode size={120} className="text-gray-400" />
-                        </div>
-                        <p className="text-sm text-gray-600 dark:text-gray-300">
-                          Scan this QR code with your payment app
-                        </p>
-                        <p className="text-lg font-bold text-pink-500 mt-2">
-                          {formatPrice(booking.price)}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        <Upload className="inline mr-2" size={16} />
-                        Paste Payment Proof / QR Code
-                      </label>
-                      <textarea
-                        value={paymentProof}
-                        onChange={(e) => setPaymentProof(e.target.value)}
-                        placeholder="Paste your payment confirmation code, transaction ID, or QR code data here..."
-                        className="w-full px-3 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-200 min-h-[100px] resize-vertical"
-                      />
-                    </div>
-
-                    <Button
-                      onClick={handlePaymentSubmit}
-                      disabled={!paymentProof.trim() || uploading}
-                      className="w-full"
-                    >
-                      {uploading ? "Submitting..." : "Submit Payment Proof"}
-                    </Button>
-
-                    <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
-                      After payment, paste your transaction ID or payment
-                      confirmation here. Our team will verify and confirm your
-                      booking within 24 hours.
-                    </p>
-                  </div>
-                </>
-              )}
+              </>
             </Card>
           </motion.div>
         </div>

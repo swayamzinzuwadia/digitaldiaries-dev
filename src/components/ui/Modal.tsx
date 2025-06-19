@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import { Button } from "./Button";
+import Scrollbar from "smooth-scrollbar";
 
 interface ModalProps {
   isOpen: boolean;
@@ -16,6 +17,20 @@ export const Modal: React.FC<ModalProps> = ({
   title,
   children,
 }) => {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isOpen && scrollRef.current) {
+      const scrollbar = Scrollbar.init(scrollRef.current, {
+        damping: 0.08,
+        alwaysShowTracks: true,
+      });
+      return () => {
+        scrollbar.destroy();
+      };
+    }
+  }, [isOpen]);
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -31,7 +46,7 @@ export const Modal: React.FC<ModalProps> = ({
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="relative w-full max-w-md bg-white/90 dark:bg-black/90 backdrop-blur-xl rounded-2xl p-6 shadow-2xl border border-white/20"
+            className="relative w-full max-w-md max-h-[90vh] bg-white/90 dark:bg-black/90 backdrop-blur-xl rounded-2xl p-6 shadow-2xl border border-white/20 flex flex-col"
           >
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -41,7 +56,13 @@ export const Modal: React.FC<ModalProps> = ({
                 <X size={20} />
               </Button>
             </div>
-            {children}
+            <div
+              ref={scrollRef}
+              className="overflow-y-auto overflow-x-hidden custom-scrollbar"
+              style={{ maxHeight: "calc(90vh - 4rem)" }}
+            >
+              {children}
+            </div>
           </motion.div>
         </div>
       )}

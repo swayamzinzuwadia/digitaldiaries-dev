@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
-import { Card } from './ui/Card';
-import { Button } from './ui/Button';
-import { Badge } from './ui/Badge';
-import { MapPin, Clock, Users } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { BookingModal } from './BookingModal';
+import React, { useState } from "react";
+import { Card } from "./ui/Card";
+import { Button } from "./ui/Button";
+import { Badge } from "./ui/Badge";
+import { MapPin, Clock, Users } from "lucide-react";
+import { motion } from "framer-motion";
+import { BookingModal } from "./BookingModal";
 
 interface MovieScreenProps {
   id: string;
@@ -23,7 +23,7 @@ export const MovieScreen: React.FC<MovieScreenProps> = ({
   image,
   description,
   capacity,
-  features
+  features,
 }) => {
   const [showBookingModal, setShowBookingModal] = useState(false);
 
@@ -54,7 +54,7 @@ export const MovieScreen: React.FC<MovieScreenProps> = ({
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
               {theme} Experience
             </h3>
-            
+
             <p className="text-gray-600 dark:text-gray-300 text-sm mb-4 line-clamp-2">
               {description}
             </p>
@@ -83,7 +83,7 @@ export const MovieScreen: React.FC<MovieScreenProps> = ({
             </div>
 
             <div className="mt-auto">
-              <Button 
+              <Button
                 className="w-full"
                 onClick={() => setShowBookingModal(true)}
               >
@@ -99,6 +99,7 @@ export const MovieScreen: React.FC<MovieScreenProps> = ({
         onClose={() => setShowBookingModal(false)}
         screenId={id}
         screenTitle={`${theme} Experience`}
+        location={location}
       />
     </>
   );

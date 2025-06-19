@@ -23,18 +23,19 @@ interface BookingModalProps {
   onClose: () => void;
   screenId: string;
   screenTitle: string;
+  location: string;
 }
 
 const packages = {
   gold: {
     name: "Gold",
-    price: 299,
+    price: 1999,
     color: "bg-yellow-500",
     features: ["Basic Setup", "Movie Projector", "2 Chairs"],
   },
   diamond: {
     name: "Diamond",
-    price: 499,
+    price: 2999,
     color: "bg-blue-500",
     features: [
       "Premium Setup",
@@ -45,7 +46,7 @@ const packages = {
   },
   platinum: {
     name: "Platinum",
-    price: 799,
+    price: 3499,
     color: "bg-purple-500",
     features: [
       "Deluxe Setup",
@@ -64,6 +65,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   onClose,
   screenId,
   screenTitle,
+  location,
 }) => {
   const { user, userData } = useAuth();
   const navigate = useNavigate();
@@ -112,14 +114,17 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       const bookingData = {
         userId: user.uid,
         userPhone: userData.phone,
+        userName: userData.name,
         screenId,
         screenTitle,
+        location,
         date: selectedDate,
         slot: selectedSlot,
         package: selectedPackage,
         price: packages[selectedPackage].price,
         createdAt: Timestamp.now(),
-        status: "confirmed",
+        status: "tentative",
+        paymentConfirmation: false,
       };
 
       const docRef = await addDoc(collection(db, "bookings"), bookingData);
@@ -151,7 +156,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={`Book ${screenTitle}`}>
-      <div className="space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
+      <div className="space-y-6 max-h-[70vh] overflow-y-auto">
         {/* Package Selection */}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
@@ -175,7 +180,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                     <span className="font-medium">{pkg.name}</span>
                   </div>
                   <span className="text-lg font-bold text-pink-500">
-                    {formatPrice(pkg.price)}
+                    ₹{pkg.price}
                   </span>
                 </div>
                 <div className="mt-2 flex flex-wrap gap-1">
@@ -250,6 +255,10 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                 <span className="font-medium">{screenTitle}</span>
               </div>
               <div className="flex justify-between">
+                <span>Location:</span>
+                <span className="font-medium">{location}</span>
+              </div>
+              <div className="flex justify-between">
                 <span>Package:</span>
                 <span className="font-medium">{selectedPackageInfo.name}</span>
               </div>
@@ -263,7 +272,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               </div>
               <div className="flex justify-between text-lg font-bold text-pink-500 pt-2 border-t">
                 <span>Total:</span>
-                <span>{formatPrice(selectedPackageInfo.price)}</span>
+                <span>₹{selectedPackageInfo.price}</span>
               </div>
             </div>
           </div>

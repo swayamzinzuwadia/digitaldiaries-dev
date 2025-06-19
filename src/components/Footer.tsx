@@ -1,6 +1,14 @@
-import React from 'react';
-import { Heart, Instagram, Twitter, Facebook, Mail, Phone, MapPin } from 'lucide-react';
-import { motion } from 'framer-motion';
+import React from "react";
+import {
+  Heart,
+  Instagram,
+  Twitter,
+  Facebook,
+  Mail,
+  Phone,
+  MapPin,
+} from "lucide-react";
+import { motion } from "framer-motion";
 
 export const Footer: React.FC = () => {
   return (
@@ -22,14 +30,14 @@ export const Footer: React.FC = () => {
               </h3>
             </div>
             <p className="text-gray-300 mb-6 max-w-md">
-              Creating magical romantic moments through unforgettable movie experiences. 
-              Your love story deserves the perfect setting.
+              Creating magical romantic moments through unforgettable movie
+              experiences. Your love story deserves the perfect setting.
             </p>
             <div className="flex space-x-4">
               {[
-                { icon: Instagram, href: '#' },
-                { icon: Twitter, href: '#' },
-                { icon: Facebook, href: '#' },
+                { icon: Instagram, href: "#" },
+                { icon: Twitter, href: "#" },
+                { icon: Facebook, href: "#" },
               ].map(({ icon: Icon, href }, index) => (
                 <motion.a
                   key={index}
@@ -53,9 +61,18 @@ export const Footer: React.FC = () => {
           >
             <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
             <ul className="space-y-2">
-              {['Movie Screens', 'Packages', 'Booking', 'About Us', 'Contact'].map((link, index) => (
+              {[
+                "Movie Screens",
+                "Packages",
+                "Booking",
+                "About Us",
+                "Contact",
+              ].map((link, index) => (
                 <li key={index}>
-                  <a href="#" className="text-gray-300 hover:text-pink-400 transition-colors">
+                  <a
+                    href="#"
+                    className="text-gray-300 hover:text-pink-400 transition-colors"
+                  >
                     {link}
                   </a>
                 </li>
@@ -74,15 +91,17 @@ export const Footer: React.FC = () => {
             <div className="space-y-3">
               <div className="flex items-center space-x-3">
                 <Phone size={16} className="text-pink-400" />
-                <span className="text-gray-300">+1 (555) 123-4567</span>
+                <span className="text-gray-300">+919769530750</span>
               </div>
               <div className="flex items-center space-x-3">
                 <Mail size={16} className="text-pink-400" />
-                <span className="text-gray-300">hello@digitaldiaries.com</span>
+                <span className="text-gray-300">info@digitaldiaries.com</span>
               </div>
               <div className="flex items-center space-x-3">
                 <MapPin size={16} className="text-pink-400" />
-                <span className="text-gray-300">123 Romance Ave, Love City</span>
+                <span className="text-gray-300">
+                  Mumbai, Maharashtra, India
+                </span>
               </div>
             </div>
           </motion.div>
@@ -97,16 +116,25 @@ export const Footer: React.FC = () => {
           className="border-t border-white/10 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center"
         >
           <p className="text-gray-400 text-sm mb-4 md:mb-0">
-            © 2025 Digital Diaries. All rights reserved. Made with ❤️ for couples.
+            © 2025 Digital Diaries. All rights reserved.
           </p>
           <div className="flex space-x-6 text-sm">
-            <a href="#" className="text-gray-400 hover:text-pink-400 transition-colors">
+            <a
+              href="#"
+              className="text-gray-400 hover:text-pink-400 transition-colors"
+            >
               Privacy Policy
             </a>
-            <a href="#" className="text-gray-400 hover:text-pink-400 transition-colors">
+            <a
+              href="#"
+              className="text-gray-400 hover:text-pink-400 transition-colors"
+            >
               Terms of Service
             </a>
-            <a href="#" className="text-gray-400 hover:text-pink-400 transition-colors">
+            <a
+              href="#"
+              className="text-gray-400 hover:text-pink-400 transition-colors"
+            >
               Cookie Policy
             </a>
           </div>

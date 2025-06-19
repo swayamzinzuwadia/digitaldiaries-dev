@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import { MovieScreen } from '../components/MovieScreen';
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../lib/firebase';
-import { Search, Filter } from 'lucide-react';
-import { Input } from '../components/ui/Input';
-import { Button } from '../components/ui/Button';
+import React, { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { MovieScreen } from "../components/MovieScreen";
+import { collection, getDocs, setDoc, doc } from "firebase/firestore";
+import { db } from "../lib/firebase";
+import { Search, Filter } from "lucide-react";
+import { Input } from "../components/ui/Input";
+import { Button } from "../components/ui/Button";
 
 interface Screen {
   id: string;
@@ -17,86 +17,129 @@ interface Screen {
   features: string[];
 }
 
-const defaultScreens: Screen[] = [
+export const defaultScreens: Screen[] = [
+  // Wadala Screens
   {
-    id: '1',
-    theme: 'Hot Air Balloon',
-    location: 'Skyline Valley',
-    image: 'https://images.pexels.com/photos/1388030/pexels-photo-1388030.jpeg?auto=compress&cs=tinysrgb&w=800',
-    description: 'Experience romance floating among the clouds with breathtaking aerial views and champagne service.',
-    capacity: 2,
-    features: ['360° Views', 'Champagne Service', 'Sunset Timing', 'Professional Photos']
-  },
-  {
-    id: '2',
-    theme: 'Sandy Beach',
-    location: 'Moonlight Shores',
-    image: 'https://images.pexels.com/photos/1032650/pexels-photo-1032650.jpeg?auto=compress&cs=tinysrgb&w=800',
-    description: 'Watch movies under the stars with the sound of waves as your romantic soundtrack.',
-    capacity: 4,
-    features: ['Ocean Breeze', 'Bonfire Setup', 'Beach Seating', 'Stargazing']
-  },
-  {
-    id: '3',
-    theme: 'Poolside',
-    location: 'Villa Paradise',
-    image: 'https://images.pexels.com/photos/1271619/pexels-photo-1271619.jpeg?auto=compress&cs=tinysrgb&w=800',
-    description: 'Luxury poolside cinema with ambient lighting and comfortable loungers for the perfect date night.',
+    id: "1",
+    theme: "Baywatch",
+    location: "Wadala",
+    image:
+      "https://images.pexels.com/photos/1271619/pexels-photo-1271619.jpeg?auto=compress&cs=tinysrgb&w=800",
+    description: "Screen with a pool for a unique movie experience.",
     capacity: 6,
-    features: ['Pool Lighting', 'Floating Bar', 'Luxury Loungers', 'Poolside Service']
+    features: ["Pool", "Ambient Lighting", "Loungers"],
   },
   {
-    id: '4',
-    theme: 'Park & Watch',
-    location: 'Central Gardens',
-    image: 'https://images.pexels.com/photos/1379636/pexels-photo-1379636.jpeg?auto=compress&cs=tinysrgb&w=800',
-    description: 'Cozy outdoor movie experience surrounded by nature and fresh air in a beautiful garden setting.',
-    capacity: 8,
-    features: ['Garden Setting', 'Picnic Setup', 'Nature Sounds', 'Eco-Friendly']
-  },
-  {
-    id: '5',
-    theme: 'Grass',
-    location: 'Meadow Hills',
-    image: 'https://images.pexels.com/photos/1105766/pexels-photo-1105766.jpeg?auto=compress&cs=tinysrgb&w=800',
-    description: 'Classic outdoor movie night on a beautiful grassy meadow under the stars with cozy blanket setup.',
-    capacity: 10,
-    features: ['Open Field', 'Blanket Setup', 'Star Gazing', 'Meadow Picnic']
-  },
-  {
-    id: '6',
-    theme: 'Rooftop Terrace',
-    location: 'City Heights',
-    image: 'https://images.pexels.com/photos/1105766/pexels-photo-1105766.jpeg?auto=compress&cs=tinysrgb&w=800',
-    description: 'Urban romance with city skyline views and sophisticated ambiance for modern couples.',
+    id: "2",
+    theme: "Sandy Screen",
+    location: "Wadala",
+    image:
+      "https://images.pexels.com/photos/1032650/pexels-photo-1032650.jpeg?auto=compress&cs=tinysrgb&w=800",
+    description: "A sandy beach themed screen for a relaxed vibe.",
     capacity: 4,
-    features: ['City Views', 'Modern Setup', 'Wine Service', 'Urban Ambiance']
-  }
+    features: ["Sand", "Beach Seating", "Stargazing"],
+  },
+  {
+    id: "3",
+    theme: "Park N Watch",
+    location: "Wadala",
+    image:
+      "https://images.pexels.com/photos/1379636/pexels-photo-1379636.jpeg?auto=compress&cs=tinysrgb&w=800",
+    description: "Car parked indoors, seats replaced with bed and TV.",
+    capacity: 2,
+    features: ["Indoor Parking", "Bed", "TV"],
+  },
+  {
+    id: "4",
+    theme: "Cine Lovers",
+    location: "Wadala",
+    image:
+      "https://images.pexels.com/photos/1105766/pexels-photo-1105766.jpeg?auto=compress&cs=tinysrgb&w=800",
+    description: "Grassy indoor theme for cine lovers.",
+    capacity: 4,
+    features: ["Grass", "Indoor", "Cozy Setup"],
+  },
+  // Dahisar Screens
+  {
+    id: "5",
+    theme: "Cine Lovers",
+    location: "Dahisar",
+    image:
+      "https://images.pexels.com/photos/1105766/pexels-photo-1105766.jpeg?auto=compress&cs=tinysrgb&w=800",
+    description: "Grassy indoor theme for cine lovers.",
+    capacity: 4,
+    features: ["Grass", "Indoor", "Cozy Setup"],
+  },
+  {
+    id: "6",
+    theme: "Cozy Nest",
+    location: "Dahisar",
+    image:
+      "https://images.pexels.com/photos/1271619/pexels-photo-1271619.jpeg?auto=compress&cs=tinysrgb&w=800",
+    description: "Pool theme for a cozy nest experience.",
+    capacity: 6,
+    features: ["Pool", "Ambient Lighting", "Loungers"],
+  },
+  {
+    id: "7",
+    theme: "Fly High",
+    location: "Dahisar",
+    image:
+      "https://images.pexels.com/photos/1388030/pexels-photo-1388030.jpeg?auto=compress&cs=tinysrgb&w=800",
+    description: "Hot air balloon themed screen for a unique date.",
+    capacity: 2,
+    features: ["Hot Air Balloon", "Aerial Views", "Champagne Service"],
+  },
+  {
+    id: "8",
+    theme: "DHOOM",
+    location: "Dahisar",
+    image:
+      "https://images.pexels.com/photos/1379636/pexels-photo-1379636.jpeg?auto=compress&cs=tinysrgb&w=800",
+    description: "Seating in a car with a TV and table.",
+    capacity: 2,
+    features: ["Car Seating", "TV", "Table"],
+  },
 ];
 
 export const ScreensPage: React.FC = () => {
   const [screens, setScreens] = useState<Screen[]>(defaultScreens);
-  const [filteredScreens, setFilteredScreens] = useState<Screen[]>(defaultScreens);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCapacity, setSelectedCapacity] = useState<number | null>(null);
+  const [filteredScreens, setFilteredScreens] =
+    useState<Screen[]>(defaultScreens);
+  const [selectedLocation, setSelectedLocation] = useState<string>("All");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchScreens = async () => {
       try {
-        const screensCollection = collection(db, 'screens');
+        const screensCollection = collection(db, "screens");
         const screensSnapshot = await getDocs(screensCollection);
-        
-        if (!screensSnapshot.empty) {
-          const screensData = screensSnapshot.docs.map(doc => ({
+
+        if (screensSnapshot.empty) {
+          // Populate Firestore with defaultScreens
+          await Promise.all(
+            defaultScreens.map((screen) =>
+              setDoc(doc(db, "screens", screen.id), screen)
+            )
+          );
+          // Fetch again after seeding
+          const seededSnapshot = await getDocs(screensCollection);
+          const screensData = seededSnapshot.docs.map((doc) => ({
             id: doc.id,
-            ...doc.data()
+            ...doc.data(),
+          })) as Screen[];
+          setScreens(screensData);
+          setFilteredScreens(screensData);
+        } else {
+          const screensData = screensSnapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
           })) as Screen[];
           setScreens(screensData);
           setFilteredScreens(screensData);
         }
       } catch (error) {
-        console.log('Using default screens data');
+        console.log("Using default screens data");
       } finally {
         setLoading(false);
       }
@@ -108,20 +151,14 @@ export const ScreensPage: React.FC = () => {
   useEffect(() => {
     let filtered = screens;
 
-    if (searchTerm) {
-      filtered = filtered.filter(screen =>
-        screen.theme.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        screen.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        screen.description.toLowerCase().includes(searchTerm.toLowerCase())
+    if (selectedLocation !== "All") {
+      filtered = filtered.filter(
+        (screen) => screen.location === selectedLocation
       );
     }
 
-    if (selectedCapacity) {
-      filtered = filtered.filter(screen => screen.capacity >= selectedCapacity);
-    }
-
     setFilteredScreens(filtered);
-  }, [searchTerm, selectedCapacity, screens]);
+  }, [selectedLocation, screens]);
 
   if (loading) {
     return (
@@ -144,56 +181,39 @@ export const ScreensPage: React.FC = () => {
             Movie Screens
           </h1>
           <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            Discover our collection of romantic movie screening locations, each designed to create unforgettable moments
+            Discover our collection of romantic movie screening locations, each
+            designed to create unforgettable moments
           </p>
         </motion.div>
 
-        {/* Search and Filter */}
+        {/* Only Location Filter */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
           className="mb-8 flex flex-col md:flex-row gap-4 items-center justify-center"
         >
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-            <Input
-              type="text"
-              placeholder="Search screens..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 w-64"
-            />
-          </div>
-          
           <div className="flex gap-2">
             <Button
-              variant={selectedCapacity === null ? 'primary' : 'outline'}
+              variant={selectedLocation === "All" ? "primary" : "outline"}
               size="sm"
-              onClick={() => setSelectedCapacity(null)}
+              onClick={() => setSelectedLocation("All")}
             >
-              All
+              All Locations
             </Button>
             <Button
-              variant={selectedCapacity === 2 ? 'primary' : 'outline'}
+              variant={selectedLocation === "Dahisar" ? "primary" : "outline"}
               size="sm"
-              onClick={() => setSelectedCapacity(2)}
+              onClick={() => setSelectedLocation("Dahisar")}
             >
-              Intimate (2)
+              Dahisar
             </Button>
             <Button
-              variant={selectedCapacity === 4 ? 'primary' : 'outline'}
+              variant={selectedLocation === "Wadala" ? "primary" : "outline"}
               size="sm"
-              onClick={() => setSelectedCapacity(4)}
+              onClick={() => setSelectedLocation("Wadala")}
             >
-              Small Group (4+)
-            </Button>
-            <Button
-              variant={selectedCapacity === 8 ? 'primary' : 'outline'}
-              size="sm"
-              onClick={() => setSelectedCapacity(8)}
-            >
-              Large Group (8+)
+              Wadala
             </Button>
           </div>
         </motion.div>
@@ -219,7 +239,8 @@ export const ScreensPage: React.FC = () => {
             className="text-center py-12"
           >
             <p className="text-gray-600 dark:text-gray-300 text-lg">
-              No screens found matching your criteria. Try adjusting your search or filters.
+              No screens found matching your criteria. Try adjusting your search
+              or filters.
             </p>
           </motion.div>
         )}
