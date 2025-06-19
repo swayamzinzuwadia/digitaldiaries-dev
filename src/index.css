@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom pink scrollbar for use across the website */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #ec4899 transparent; /* pink-500 on transparent */
+}
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #ec4899; /* pink-500 */
+  border-radius: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #db2777; /* pink-600 */
+}
