@@ -116,7 +116,7 @@ export const Footer: React.FC = () => {
           className="border-t border-white/10 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center"
         >
           <p className="text-gray-400 text-sm mb-4 md:mb-0">
-            © 2025 Digital Diaries. All rights reserved.
+            © 2025 Digital Diaries. All rights reserved. Swayam Zinzuwadia.
           </p>
           <div className="flex space-x-6 text-sm">
             <a
