@@ -3,13 +3,13 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBIyCSp5bIccOXeZAxHhfu-c6K6rY2zLow",
-  authDomain: "digitaldiaries-f95ec.firebaseapp.com",
-  projectId: "digitaldiaries-f95ec",
-  storageBucket: "digitaldiaries-f95ec.firebasestorage.app",
-  messagingSenderId: "331608160202",
-  appId: "1:331608160202:web:630bacfdc191487e504133",
-  measurementId: "G-0EKVXFX5F9",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
 const app = initializeApp(firebaseConfig);
