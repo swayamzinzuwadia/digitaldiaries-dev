@@ -137,6 +137,12 @@ export const Footer: React.FC = () => {
             >
               Cookie Policy
             </a>
+            <a
+              href="/admin"
+              className="text-gray-400 hover:text-pink-400 transition-colors"
+            >
+              Admin Login
+            </a>
           </div>
         </motion.div>
       </div>
