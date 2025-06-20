@@ -23,6 +23,7 @@ interface Booking {
   date: string;
   slot: string;
   status: string;
+  paymentConfirmation?: boolean;
 }
 
 export const defaultScreens: Screen[] = [

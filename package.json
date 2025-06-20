@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@sendinblue/client": "^3.3.0",
     "@studio-freight/lenis": "^1.0.42",
     "clsx": "^2.0.0",
     "firebase": "^10.7.1",

@@ -12,6 +12,7 @@ import { CheckoutPage } from "./pages/CheckoutPage";
 import { Modal } from "./components/ui/Modal";
 import { AuthModal } from "./components/AuthModal";
 import { AdminPanel } from "./pages/AdminPanel";
+import { TestAPI } from "./pages/TestAPI";
 
 function App() {
   const [showAuthModal, setShowAuthModal] = React.useState(false);
@@ -35,6 +36,7 @@ function App() {
                 <Route path="/bookings" element={<BookingsPage />} />
                 <Route path="/checkout/:bookingId" element={<CheckoutPage />} />
                 <Route path="/admin" element={<AdminPanel />} />
+                <Route path="/test-api" element={<TestAPI />} />
               </Routes>
             </main>
             <Footer />
