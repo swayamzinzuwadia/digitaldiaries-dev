@@ -46,6 +46,14 @@ interface Booking {
   location: string;
 }
 
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  createdAt?: any;
+}
+
 const packages = {
   gold: { name: "Gold", price: 299 },
   diamond: { name: "Diamond", price: 499 },
@@ -73,15 +81,20 @@ export const AdminPanel: React.FC = () => {
     paymentConfirmation: false,
   });
   const [selectedLocation, setSelectedLocation] = useState<string>("All");
-  const [activeTab, setActiveTab] = useState<"requests" | "cancelled">(
-    "requests"
-  );
-  const [selectedDate, setSelectedDate] = useState<string>("");
+  const [activeTab, setActiveTab] = useState<
+    "requests" | "cancelled" | "users" | "confirmed"
+  >("confirmed");
+  const [selectedDate, setSelectedDate] = useState<string>(() => {
+    const today = new Date();
+    return today.toISOString().split("T")[0];
+  });
+  const [users, setUsers] = useState<User[]>([]);
 
   useEffect(() => {
     if (loggedIn) {
       fetchBookings();
       fetchScreens();
+      fetchUsers();
     }
     // eslint-disable-next-line
   }, [loggedIn]);
@@ -100,6 +113,13 @@ export const AdminPanel: React.FC = () => {
       snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Booking))
     );
     setLoading(false);
+  };
+
+  const fetchUsers = async () => {
+    const snapshot = await getDocs(collection(db, "users"));
+    setUsers(
+      snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as User))
+    );
   };
 
   const handleLogin = (e: React.FormEvent) => {
@@ -295,6 +315,16 @@ export const AdminPanel: React.FC = () => {
         <div className="mb-6 flex flex-col sm:flex-row gap-2 sm:gap-4">
           <button
             className={`px-4 py-2 rounded-t-lg font-semibold border-b-2 transition-colors w-full sm:w-auto ${
+              activeTab === "confirmed"
+                ? "border-pink-500 text-pink-600 bg-pink-50 dark:bg-pink-900/10"
+                : "border-transparent text-gray-500 bg-transparent"
+            }`}
+            onClick={() => setActiveTab("confirmed")}
+          >
+            Confirmed Bookings
+          </button>
+          <button
+            className={`px-4 py-2 rounded-t-lg font-semibold border-b-2 transition-colors w-full sm:w-auto ${
               activeTab === "requests"
                 ? "border-pink-500 text-pink-600 bg-pink-50 dark:bg-pink-900/10"
                 : "border-transparent text-gray-500 bg-transparent"
@@ -312,6 +342,16 @@ export const AdminPanel: React.FC = () => {
             onClick={() => setActiveTab("cancelled")}
           >
             Cancelled Bookings
+          </button>
+          <button
+            className={`px-4 py-2 rounded-t-lg font-semibold border-b-2 transition-colors w-full sm:w-auto ${
+              activeTab === "users"
+                ? "border-pink-500 text-pink-600 bg-pink-50 dark:bg-pink-900/10"
+                : "border-transparent text-gray-500 bg-transparent"
+            }`}
+            onClick={() => setActiveTab("users")}
+          >
+            Users
           </button>
         </div>
 
@@ -349,6 +389,13 @@ export const AdminPanel: React.FC = () => {
                     <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
                       {bookings
                         .filter((booking) => booking.status !== "cancelled")
+                        .filter(
+                          (booking) =>
+                            !(
+                              booking.status === "confirmed" &&
+                              booking.paymentConfirmation === true
+                            )
+                        )
                         .filter((booking) => {
                           if (selectedLocation === "All") return true;
                           return booking.location === selectedLocation;
@@ -497,6 +544,121 @@ export const AdminPanel: React.FC = () => {
                 </div>
               </Card>
             )}
+            {activeTab === "confirmed" && (
+              <Card>
+                <h2 className="text-xl font-bold mb-4">Confirmed Bookings</h2>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead className="bg-gray-50 dark:bg-gray-800 hidden sm:table-header-group">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                          Customer Details
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                          Experience
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                          Date & Time
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                          Package
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                          Status
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                          Action
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                      {bookings
+                        .filter(
+                          (booking) =>
+                            booking.status === "confirmed" &&
+                            booking.paymentConfirmation === true
+                        )
+                        .filter((booking) => {
+                          if (selectedLocation === "All") return true;
+                          return booking.location === selectedLocation;
+                        })
+                        .filter((booking) => {
+                          if (!selectedDate) return true;
+                          return booking.date === selectedDate;
+                        })
+                        .map((booking) => (
+                          <tr
+                            key={booking.id}
+                            className="block sm:table-row hover:bg-gray-50 dark:hover:bg-gray-800 mb-4 rounded-lg shadow-sm border w-full sm:mb-0 sm:rounded-none sm:shadow-none sm:border-0 sm:w-auto"
+                          >
+                            <td className="block sm:table-cell px-4 py-4 w-full sm:w-auto">
+                              <div className="sm:hidden text-xs font-semibold text-gray-500 mb-1">
+                                Customer Details
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                  {booking.userName}
+                                </span>
+                                <span className="text-sm text-gray-500">
+                                  {booking.userPhone}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="block sm:table-cell px-4 py-4 w-full sm:w-auto">
+                              <div className="sm:hidden text-xs font-semibold text-gray-500 mb-1">
+                                Experience
+                              </div>
+                              {booking.screenTitle}
+                            </td>
+                            <td className="block sm:table-cell px-4 py-4 w-full sm:w-auto">
+                              <div className="sm:hidden text-xs font-semibold text-gray-500 mb-1">
+                                Date & Time
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="text-sm">{booking.date}</span>
+                                <span className="text-sm text-gray-500">
+                                  {booking.slot}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="block sm:table-cell px-4 py-4 w-full sm:w-auto">
+                              <div className="sm:hidden text-xs font-semibold text-gray-500 mb-1">
+                                Package
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="text-sm capitalize">
+                                  {booking.package}
+                                </span>
+                                <span className="text-sm font-medium text-pink-600">
+                                  {formatPrice(booking.price)}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="block sm:table-cell px-4 py-4 w-full sm:w-auto">
+                              <div className="sm:hidden text-xs font-semibold text-gray-500 mb-1">
+                                Status
+                              </div>
+                              <Badge variant="success">Confirmed</Badge>
+                            </td>
+                            <td className="block sm:table-cell px-4 py-4 w-full sm:w-auto">
+                              <Button
+                                onClick={() =>
+                                  handleUndoPaymentConfirmation(booking.id)
+                                }
+                                size="sm"
+                                variant="warning"
+                                className="w-full sm:w-auto"
+                              >
+                                Undo Payment Confirmation
+                              </Button>
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+              </Card>
+            )}
             {activeTab === "cancelled" && (
               <Card>
                 <h2 className="text-xl font-bold mb-4">Cancelled Bookings</h2>
@@ -606,6 +768,49 @@ export const AdminPanel: React.FC = () => {
                             </td>
                           </tr>
                         ))}
+                    </tbody>
+                  </table>
+                </div>
+              </Card>
+            )}
+            {activeTab === "users" && (
+              <Card>
+                <h2 className="text-xl font-bold mb-4">All Users</h2>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead className="bg-gray-50 dark:bg-gray-800">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                          Name
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                          Email
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                          Phone
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                          Created At
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                      {users.map((user) => (
+                        <tr key={user.id}>
+                          <td className="px-4 py-3">{user.name}</td>
+                          <td className="px-4 py-3">{user.email}</td>
+                          <td className="px-4 py-3">{user.phone}</td>
+                          <td className="px-4 py-3">
+                            {user.createdAt
+                              ? user.createdAt.seconds
+                                ? new Date(
+                                    user.createdAt.seconds * 1000
+                                  ).toLocaleString()
+                                : user.createdAt.toString()
+                              : "-"}
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>

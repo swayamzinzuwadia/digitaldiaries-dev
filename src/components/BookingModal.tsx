@@ -24,6 +24,8 @@ interface BookingModalProps {
   screenId: string;
   screenTitle: string;
   location: string;
+  selectedSlot: string;
+  selectedDate: string;
 }
 
 const packages = {
@@ -66,14 +68,14 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   screenId,
   screenTitle,
   location,
+  selectedSlot,
+  selectedDate,
 }) => {
   const { user, userData } = useAuth();
   const navigate = useNavigate();
   const [selectedPackage, setSelectedPackage] =
     useState<keyof typeof packages>("gold");
-  const [selectedDate, setSelectedDate] = useState("");
-  const [selectedSlot, setSelectedSlot] = useState("");
-  const [bookedSlots, setBookedSlots] = useState<string[]>([]);
+  const [coupon, setCoupon] = useState("");
   const [loading, setLoading] = useState(false);
 
   const checkAvailability = async (date: string) => {
@@ -88,13 +90,10 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
     const querySnapshot = await getDocs(q);
     const booked = querySnapshot.docs.map((doc) => doc.data().slot);
-    setBookedSlots(booked);
   };
 
   const handleDateChange = (date: string) => {
-    setSelectedDate(date);
-    setSelectedSlot("");
-    checkAvailability(date);
+    // This function is no longer used in the new implementation
   };
 
   const handleBooking = async () => {
@@ -102,14 +101,11 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       toast.error("Please sign in to book");
       return;
     }
-
     if (!selectedDate || !selectedSlot) {
-      toast.error("Please select date and time");
+      toast.error("Please select a slot");
       return;
     }
-
     setLoading(true);
-
     try {
       const bookingData = {
         userId: user.uid,
@@ -122,11 +118,11 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         slot: selectedSlot,
         package: selectedPackage,
         price: packages[selectedPackage].price,
+        coupon: coupon.trim() || null,
         createdAt: Timestamp.now(),
         status: "tentative",
         paymentConfirmation: false,
       };
-
       const docRef = await addDoc(collection(db, "bookings"), bookingData);
       toast.success("Booking confirmed! 🎉");
       onClose();
@@ -156,7 +152,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={`Book ${screenTitle}`}>
-      <div className="space-y-6 max-h-[70vh] overflow-y-auto">
+      <div className="space-y-6 max-h-[70vh] overflow-y-auto overflow-x-hidden">
         {/* Package Selection */}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
@@ -194,100 +190,23 @@ export const BookingModal: React.FC<BookingModalProps> = ({
             ))}
           </div>
         </div>
-
-        {/* Date Selection */}
+        {/* Coupon Code Input */}
         <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Coupon Code (optional)
+          </label>
           <Input
-            label="Select Date"
-            type="date"
-            value={selectedDate}
-            onChange={(e) => handleDateChange(e.target.value)}
-            min={minDate}
-            required
+            type="text"
+            placeholder="Enter coupon code"
+            value={coupon}
+            onChange={(e) => setCoupon(e.target.value)}
+            className="w-full"
           />
         </div>
-
-        {/* Time Slot Selection */}
-        {selectedDate && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-              <Clock className="inline mr-2" size={16} />
-              Choose Time Slot
-            </label>
-            <div className="grid grid-cols-2 gap-2">
-              {timeSlots.map((slot) => {
-                const isBooked = bookedSlots.includes(slot);
-                return (
-                  <button
-                    key={slot}
-                    onClick={() => !isBooked && setSelectedSlot(slot)}
-                    disabled={isBooked}
-                    className={`p-3 rounded-lg border-2 transition-all ${
-                      selectedSlot === slot
-                        ? "border-pink-500 bg-pink-50 dark:bg-pink-900/20"
-                        : isBooked
-                        ? "border-red-300 bg-red-50 dark:bg-red-900/20 cursor-not-allowed opacity-50"
-                        : "border-gray-200 dark:border-gray-700 hover:border-gray-300"
-                    }`}
-                  >
-                    {slot}
-                    {isBooked && (
-                      <span className="block text-xs text-red-500 mt-1">
-                        Booked
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Booking Summary */}
-        {selectedDate && selectedSlot && (
-          <div className="bg-gradient-to-r from-pink-50 to-rose-50 dark:from-pink-900/20 dark:to-rose-900/20 rounded-lg p-4">
-            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
-              Booking Summary
-            </h4>
-            <div className="space-y-1 text-sm">
-              <div className="flex justify-between">
-                <span>Screen:</span>
-                <span className="font-medium">{screenTitle}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Location:</span>
-                <span className="font-medium">{location}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Package:</span>
-                <span className="font-medium">{selectedPackageInfo.name}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Date:</span>
-                <span className="font-medium">{selectedDate}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Time:</span>
-                <span className="font-medium">{selectedSlot}</span>
-              </div>
-              <div className="flex justify-between text-lg font-bold text-pink-500 pt-2 border-t">
-                <span>Total:</span>
-                <span>₹{selectedPackageInfo.price}</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className="flex space-x-3">
-          <Button variant="outline" onClick={onClose} className="flex-1">
-            Cancel
-          </Button>
-          <Button
-            onClick={handleBooking}
-            disabled={!selectedDate || !selectedSlot || loading}
-            className="flex-1"
-          >
-            {loading ? "Booking..." : "Confirm Booking"}
+        {/* Confirm Button */}
+        <div>
+          <Button className="w-full" onClick={handleBooking} disabled={loading}>
+            {loading ? "Confirming..." : "Confirm Booking"}
           </Button>
         </div>
       </div>

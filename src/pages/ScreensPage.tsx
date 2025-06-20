@@ -3,8 +3,8 @@ import { motion } from "framer-motion";
 import { MovieScreen } from "../components/MovieScreen";
 import { collection, getDocs, setDoc, doc } from "firebase/firestore";
 import { db } from "../lib/firebase";
-import { Search, Filter } from "lucide-react";
-import { Input } from "../components/ui/Input";
+// import { Search, Filter } from "lucide-react";
+// import { Input } from "../components/ui/Input";
 import { Button } from "../components/ui/Button";
 
 interface Screen {
@@ -15,6 +15,14 @@ interface Screen {
   description: string;
   capacity: number;
   features: string[];
+}
+
+interface Booking {
+  id: string;
+  screenId: string;
+  date: string;
+  slot: string;
+  status: string;
 }
 
 export const defaultScreens: Screen[] = [
@@ -106,8 +114,13 @@ export const ScreensPage: React.FC = () => {
   const [screens, setScreens] = useState<Screen[]>(defaultScreens);
   const [filteredScreens, setFilteredScreens] =
     useState<Screen[]>(defaultScreens);
-  const [selectedLocation, setSelectedLocation] = useState<string>("All");
+  const [selectedLocation, setSelectedLocation] = useState<string>("Dahisar");
+  const [selectedDate, setSelectedDate] = useState<string>(() => {
+    const today = new Date();
+    return today.toISOString().split("T")[0];
+  });
   const [loading, setLoading] = useState(true);
+  const [bookings, setBookings] = useState<Booking[]>([]);
 
   useEffect(() => {
     const fetchScreens = async () => {
@@ -146,17 +159,29 @@ export const ScreensPage: React.FC = () => {
     };
 
     fetchScreens();
+
+    // Fetch all bookings
+    const fetchBookings = async () => {
+      try {
+        const bookingsCollection = collection(db, "bookings");
+        const bookingsSnapshot = await getDocs(bookingsCollection);
+        const bookingsData = bookingsSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as Booking[];
+        setBookings(bookingsData);
+      } catch (error) {
+        console.log("Error fetching bookings", error);
+      }
+    };
+    fetchBookings();
   }, []);
 
   useEffect(() => {
     let filtered = screens;
-
-    if (selectedLocation !== "All") {
-      filtered = filtered.filter(
-        (screen) => screen.location === selectedLocation
-      );
-    }
-
+    filtered = filtered.filter(
+      (screen) => screen.location === selectedLocation
+    );
     setFilteredScreens(filtered);
   }, [selectedLocation, screens]);
 
@@ -193,28 +218,32 @@ export const ScreensPage: React.FC = () => {
           transition={{ duration: 0.8, delay: 0.2 }}
           className="mb-8 flex flex-col md:flex-row gap-4 items-center justify-center"
         >
-          <div className="flex gap-2">
-            <Button
-              variant={selectedLocation === "All" ? "primary" : "outline"}
-              size="sm"
-              onClick={() => setSelectedLocation("All")}
-            >
-              All Locations
-            </Button>
-            <Button
-              variant={selectedLocation === "Dahisar" ? "primary" : "outline"}
-              size="sm"
-              onClick={() => setSelectedLocation("Dahisar")}
-            >
-              Dahisar
-            </Button>
-            <Button
-              variant={selectedLocation === "Wadala" ? "primary" : "outline"}
-              size="sm"
-              onClick={() => setSelectedLocation("Wadala")}
-            >
-              Wadala
-            </Button>
+          <div className="flex gap-4 items-center">
+            <label className="font-medium">Location:</label>
+            <div className="flex gap-2">
+              <Button
+                variant={selectedLocation === "Dahisar" ? "primary" : "outline"}
+                size="sm"
+                onClick={() => setSelectedLocation("Dahisar")}
+              >
+                Dahisar
+              </Button>
+              <Button
+                variant={selectedLocation === "Wadala" ? "primary" : "outline"}
+                size="sm"
+                onClick={() => setSelectedLocation("Wadala")}
+              >
+                Wadala
+              </Button>
+            </div>
+            <label className="font-medium ml-6">Date:</label>
+            <input
+              type="date"
+              className="px-3 py-2 border rounded-lg bg-white text-gray-900 dark:bg-gray-800 dark:text-white ml-2"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              maxLength={10}
+            />
           </div>
         </motion.div>
 
@@ -227,7 +256,11 @@ export const ScreensPage: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
             >
-              <MovieScreen {...screen} />
+              <MovieScreen
+                {...screen}
+                bookings={bookings}
+                selectedDate={selectedDate}
+              />
             </motion.div>
           ))}
         </div>
