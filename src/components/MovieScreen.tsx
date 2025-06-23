@@ -12,10 +12,11 @@ interface MovieScreenProps {
   location: string;
   image: string;
   description: string;
-  capacity: number;
+  capacity?: number;
   features: string[];
   bookings?: any[];
   selectedDate?: string;
+  packages?: any;
 }
 
 const timeSlots = ["10:00 AM", "1:00 PM", "4:00 PM", "7:00 PM"];
@@ -30,6 +31,7 @@ export const MovieScreen: React.FC<MovieScreenProps> = ({
   features,
   bookings = [],
   selectedDate = "",
+  packages,
 }) => {
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState("");
@@ -112,55 +114,68 @@ export const MovieScreen: React.FC<MovieScreenProps> = ({
               ))}
             </div>
 
-            {/* Available Slots Section */}
-            {selectedDate && (
-              <div className="mb-4">
-                <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Available Slots for{" "}
-                  {new Date(selectedDate).toLocaleDateString()}
-                </h4>
-                <div className="grid grid-cols-2 gap-2">
-                  {timeSlots.map((slot) => {
-                    const isBooked = bookedSlots.includes(slot);
-                    return (
-                      <button
-                        key={slot}
-                        onClick={() => handleSlotClick(slot)}
-                        disabled={isBooked}
-                        className={`px-3 py-2 text-xs font-medium rounded-lg border-2 transition-all ${
-                          isBooked
-                            ? "border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed dark:border-gray-600 dark:bg-gray-800 dark:text-gray-500"
-                            : "border-pink-300 bg-pink-50 text-pink-700 hover:border-pink-500 hover:bg-pink-100 dark:border-pink-600 dark:bg-pink-900/20 dark:text-pink-300 dark:hover:border-pink-500 dark:hover:bg-pink-900/30"
-                        }`}
-                      >
-                        {slot}
-                      </button>
-                    );
-                  })}
-                </div>
+            {/* UI fallback for missing packages */}
+            {!packages || Object.keys(packages).length === 0 ? (
+              <div className="text-center text-red-500 font-semibold my-4">
+                Package information is currently unavailable for this screen.
               </div>
-            )}
+            ) : (
+              <>
+                {/* Available Slots Section */}
+                {selectedDate && (
+                  <div className="mb-4">
+                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Available Slots for{" "}
+                      {new Date(selectedDate).toLocaleDateString()}
+                    </h4>
+                    <div className="grid grid-cols-2 gap-2">
+                      {timeSlots.map((slot) => {
+                        const isBooked = bookedSlots.includes(slot);
+                        return (
+                          <button
+                            key={slot}
+                            onClick={() => handleSlotClick(slot)}
+                            disabled={isBooked}
+                            className={`px-3 py-2 text-xs font-medium rounded-lg border-2 transition-all ${
+                              isBooked
+                                ? "border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed dark:border-gray-600 dark:bg-gray-800 dark:text-gray-500"
+                                : "border-pink-300 bg-pink-50 text-pink-700 hover:border-pink-500 hover:bg-pink-100 dark:border-pink-600 dark:bg-pink-900/20 dark:text-pink-300 dark:hover:border-pink-500 dark:hover:bg-pink-900/30"
+                            }`}
+                          >
+                            {slot}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
-            <div className="mt-auto">
-              {!selectedDate && (
-                <Button className="w-full" disabled={true}>
-                  Select Date to View Slots
-                </Button>
-              )}
-            </div>
+                <div className="mt-auto">
+                  {!selectedDate && (
+                    <Button className="w-full" disabled={true}>
+                      Select Date to View Slots
+                    </Button>
+                  )}
+                </div>
+              </>
+            )}
           </div>
         </Card>
       </motion.div>
 
-      <BookingModal
-        isOpen={showBookingModal}
-        onClose={() => setShowBookingModal(false)}
-        screenId={id}
-        screenTitle={`${theme} Experience`}
-        location={location}
-        selectedSlot={selectedSlot}
-        selectedDate={selectedDate}
-      />
+      {/* Only render BookingModal if packages exist */}
+      {packages && Object.keys(packages).length > 0 && (
+        <BookingModal
+          isOpen={showBookingModal}
+          onClose={() => setShowBookingModal(false)}
+          screenId={id}
+          screenTitle={`${theme} Experience`}
+          location={location}
+          selectedSlot={selectedSlot}
+          selectedDate={selectedDate}
+          packages={packages}
+        />
+      )}
     </>
   );
 };

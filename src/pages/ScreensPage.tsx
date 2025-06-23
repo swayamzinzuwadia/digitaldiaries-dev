@@ -13,8 +13,9 @@ interface Screen {
   location: string;
   image: string;
   description: string;
-  capacity: number;
+  capacity?: number;
   features: string[];
+  packages?: any;
 }
 
 interface Booking {
@@ -26,95 +27,9 @@ interface Booking {
   paymentConfirmation?: boolean;
 }
 
-export const defaultScreens: Screen[] = [
-  // Wadala Screens
-  {
-    id: "1",
-    theme: "Baywatch",
-    location: "Wadala",
-    image:
-      "https://images.pexels.com/photos/1271619/pexels-photo-1271619.jpeg?auto=compress&cs=tinysrgb&w=800",
-    description: "Screen with a pool for a unique movie experience.",
-    capacity: 6,
-    features: ["Pool", "Ambient Lighting", "Loungers"],
-  },
-  {
-    id: "2",
-    theme: "Sandy Screen",
-    location: "Wadala",
-    image:
-      "https://images.pexels.com/photos/1032650/pexels-photo-1032650.jpeg?auto=compress&cs=tinysrgb&w=800",
-    description: "A sandy beach themed screen for a relaxed vibe.",
-    capacity: 4,
-    features: ["Sand", "Beach Seating", "Stargazing"],
-  },
-  {
-    id: "3",
-    theme: "Park N Watch",
-    location: "Wadala",
-    image:
-      "https://images.pexels.com/photos/1379636/pexels-photo-1379636.jpeg?auto=compress&cs=tinysrgb&w=800",
-    description: "Car parked indoors, seats replaced with bed and TV.",
-    capacity: 2,
-    features: ["Indoor Parking", "Bed", "TV"],
-  },
-  {
-    id: "4",
-    theme: "Cine Lovers",
-    location: "Wadala",
-    image:
-      "https://images.pexels.com/photos/1105766/pexels-photo-1105766.jpeg?auto=compress&cs=tinysrgb&w=800",
-    description: "Grassy indoor theme for cine lovers.",
-    capacity: 4,
-    features: ["Grass", "Indoor", "Cozy Setup"],
-  },
-  // Dahisar Screens
-  {
-    id: "5",
-    theme: "Cine Lovers",
-    location: "Dahisar",
-    image:
-      "https://images.pexels.com/photos/1105766/pexels-photo-1105766.jpeg?auto=compress&cs=tinysrgb&w=800",
-    description: "Grassy indoor theme for cine lovers.",
-    capacity: 4,
-    features: ["Grass", "Indoor", "Cozy Setup"],
-  },
-  {
-    id: "6",
-    theme: "Cozy Nest",
-    location: "Dahisar",
-    image:
-      "https://images.pexels.com/photos/1271619/pexels-photo-1271619.jpeg?auto=compress&cs=tinysrgb&w=800",
-    description: "Pool theme for a cozy nest experience.",
-    capacity: 6,
-    features: ["Pool", "Ambient Lighting", "Loungers"],
-  },
-  {
-    id: "7",
-    theme: "Fly High",
-    location: "Dahisar",
-    image:
-      "https://images.pexels.com/photos/1388030/pexels-photo-1388030.jpeg?auto=compress&cs=tinysrgb&w=800",
-    description: "Hot air balloon themed screen for a unique date.",
-    capacity: 2,
-    features: ["Hot Air Balloon", "Aerial Views", "Champagne Service"],
-  },
-  {
-    id: "8",
-    theme: "DHOOM",
-    location: "Dahisar",
-    image:
-      "https://images.pexels.com/photos/1379636/pexels-photo-1379636.jpeg?auto=compress&cs=tinysrgb&w=800",
-    description: "Seating in a car with a TV and table.",
-    capacity: 2,
-    features: ["Car Seating", "TV", "Table"],
-  },
-];
-
 export const ScreensPage: React.FC = () => {
-  const [screens, setScreens] = useState<Screen[]>(defaultScreens);
-  const [filteredScreens, setFilteredScreens] =
-    useState<Screen[]>(defaultScreens);
+  const [screens, setScreens] = useState<Screen[]>([]);
+  const [filteredScreens, setFilteredScreens] = useState<Screen[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<string>("Dahisar");
   const [selectedDate, setSelectedDate] = useState<string>(() => {
     const today = new Date();
@@ -128,32 +43,14 @@ export const ScreensPage: React.FC = () => {
       try {
         const screensCollection = collection(db, "screens");
         const screensSnapshot = await getDocs(screensCollection);
-
-        if (screensSnapshot.empty) {
-          // Populate Firestore with defaultScreens
-          await Promise.all(
-            defaultScreens.map((screen) =>
-              setDoc(doc(db, "screens", screen.id), screen)
-            )
-          );
-          // Fetch again after seeding
-          const seededSnapshot = await getDocs(screensCollection);
-          const screensData = seededSnapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          })) as Screen[];
-          setScreens(screensData);
-          setFilteredScreens(screensData);
-        } else {
-          const screensData = screensSnapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          })) as Screen[];
-          setScreens(screensData);
-          setFilteredScreens(screensData);
-        }
+        const screensData = screensSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as Screen[];
+        setScreens(screensData);
+        setFilteredScreens(screensData);
       } catch (error) {
-        console.log("Using default screens data");
+        console.log("Error fetching screens from db", error);
       } finally {
         setLoading(false);
       }
@@ -217,36 +114,43 @@ export const ScreensPage: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="mb-8 flex flex-col md:flex-row gap-4 items-center justify-center"
+          className="mb-8 flex justify-center"
         >
-          <div className="flex gap-4 items-center">
-            <label className="font-medium">Location:</label>
-            <div className="flex gap-2">
-              <Button
-                variant={selectedLocation === "Dahisar" ? "primary" : "outline"}
-                size="sm"
-                onClick={() => setSelectedLocation("Dahisar")}
-              >
-                Dahisar
-              </Button>
-              <Button
-                variant={selectedLocation === "Wadala" ? "primary" : "outline"}
-                size="sm"
-                onClick={() => setSelectedLocation("Wadala")}
-              >
-                Wadala
-              </Button>
+          <div className="w-full max-w-2xl flex flex-col gap-4 md:flex-row md:items-center md:justify-between md:gap-8 px-0 md:px-8">
+            <div className="w-full md:w-auto flex flex-col gap-1 md:flex-row md:items-center md:gap-4">
+              <label className="font-medium mb-1 md:mb-0">Location:</label>
+              <div className="flex gap-2 w-full md:w-auto">
+                <Button
+                  variant={selectedLocation === "Dahisar" ? "primary" : "outline"}
+                  size="sm"
+                  className="w-1/2 md:w-auto px-3 py-1 text-sm"
+                  onClick={() => setSelectedLocation("Dahisar")}
+                >
+                  Dahisar
+                </Button>
+                <Button
+                  variant={selectedLocation === "Wadala" ? "primary" : "outline"}
+                  size="sm"
+                  className="w-1/2 md:w-auto px-3 py-1 text-sm"
+                  onClick={() => setSelectedLocation("Wadala")}
+                >
+                  Wadala
+                </Button>
+              </div>
             </div>
-            <label className="font-medium ml-6">Date:</label>
-            <input
-              type="date"
-              className="px-3 py-2 border rounded-lg bg-white text-gray-900 dark:bg-gray-800 dark:text-white ml-2"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              maxLength={10}
-            />
+            <div className="w-full md:w-auto flex flex-col gap-1 md:flex-row md:items-center md:gap-4">
+              <label className="font-medium mb-1 md:mb-0">Date:</label>
+              <input
+                type="date"
+                className="px-2 py-1 border rounded-lg bg-white text-gray-900 dark:bg-gray-800 dark:text-white w-full md:w-auto text-sm"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                maxLength={10}
+              />
+            </div>
           </div>
         </motion.div>
+        <div className="mb-8 md:mb-12 border-b border-gray-200 dark:border-gray-700" />
 
         {/* Screens Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -261,6 +165,7 @@ export const ScreensPage: React.FC = () => {
                 {...screen}
                 bookings={bookings}
                 selectedDate={selectedDate}
+                packages={screen.packages}
               />
             </motion.div>
           ))}

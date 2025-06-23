@@ -55,9 +55,40 @@ interface User {
 }
 
 const packages = {
-  gold: { name: "Gold", price: 299 },
-  diamond: { name: "Diamond", price: 499 },
-  platinum: { name: "Platinum", price: 799 },
+  standard: {
+    name: "Standard",
+    pricing: [
+      { label: "Weekday (2hr)", price: 1500 },
+      { label: "Weekday (3hr)", price: 2000 },
+      { label: "Weekend (2hr)", price: 2000 },
+      { label: "Weekend (3hr)", price: 2500 },
+    ],
+    persons: 2,
+  },
+  silver: {
+    name: "Silver",
+    pricing: [
+      { label: "Weekday (3hr)", price: 2450 },
+      { label: "Weekend (3hr)", price: 2950 },
+    ],
+    persons: 4,
+  },
+  gold: {
+    name: "Gold",
+    pricing: [
+      { label: "Weekday (3hr)", price: 3450 },
+      { label: "Weekend (3hr)", price: 3950 },
+    ],
+    persons: 4,
+  },
+  diamond: {
+    name: "Diamond",
+    pricing: [
+      { label: "Weekday (3hr)", price: 4450 },
+      { label: "Weekend (3hr)", price: 4950 },
+    ],
+    persons: 4,
+  },
 };
 
 export const AdminPanel: React.FC = () => {
@@ -214,7 +245,7 @@ export const AdminPanel: React.FC = () => {
         date: newBooking.date,
         slot: newBooking.slot,
         package: newBooking.package,
-        price: packages[newBooking.package as keyof typeof packages].price,
+        price: packages[newBooking.package as keyof typeof packages].pricing[0].price,
         status: newBooking.paymentConfirmation ? "confirmed" : "tentative",
         paymentConfirmation: newBooking.paymentConfirmation,
         createdAt: new Date(),
@@ -938,7 +969,7 @@ export const AdminPanel: React.FC = () => {
             >
               {Object.entries(packages).map(([key, pkg]) => (
                 <option key={key} value={key}>
-                  {pkg.name} - {formatPrice(pkg.price)}
+                  {pkg.name} - {formatPrice(pkg.pricing[0].price)}
                 </option>
               ))}
             </select>

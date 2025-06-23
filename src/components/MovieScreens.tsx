@@ -3,7 +3,6 @@ import { MovieScreen } from "./MovieScreen";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { motion } from "framer-motion";
-import { defaultScreens } from "../pages/ScreensPage";
 
 interface Screen {
   id: string;
@@ -16,17 +15,21 @@ interface Screen {
 }
 
 export const MovieScreens: React.FC = () => {
-  const [screens, setScreens] = useState<Screen[]>(defaultScreens);
+  const [screens, setScreens] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Use defaultScreens from ScreensPage for consistency
-    setScreens(defaultScreens);
-    setLoading(false);
+    const fetchScreens = async () => {
+      const snapshot = await getDocs(collection(db, "screens"));
+      const screensData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setScreens(screensData);
+      setLoading(false);
+    };
+    fetchScreens();
   }, []);
 
   // Pick 3 random screens to show
-  const getRandomScreens = (screens: Screen[], count: number) => {
+  const getRandomScreens = (screens: any[], count: number) => {
     if (screens.length <= count) return screens;
     const shuffled = [...screens].sort(() => 0.5 - Math.random());
     return shuffled.slice(0, count);

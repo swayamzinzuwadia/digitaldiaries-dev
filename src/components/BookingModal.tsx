@@ -16,7 +16,7 @@ import {
 import { db } from "../lib/firebase";
 import toast from "react-hot-toast";
 import { formatPrice } from "../lib/utils";
-import { Calendar, Clock, Package, Star } from "lucide-react";
+import { Calendar, Clock, Package, Star, Check, Crown, Gem } from "lucide-react";
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -26,39 +26,8 @@ interface BookingModalProps {
   location: string;
   selectedSlot: string;
   selectedDate: string;
+  packages: any;
 }
-
-const packages = {
-  gold: {
-    name: "Gold",
-    price: 1999,
-    color: "bg-yellow-500",
-    features: ["Basic Setup", "Movie Projector", "2 Chairs"],
-  },
-  diamond: {
-    name: "Diamond",
-    price: 2999,
-    color: "bg-blue-500",
-    features: [
-      "Premium Setup",
-      "HD Projector",
-      "Luxury Seating",
-      "Snacks Included",
-    ],
-  },
-  platinum: {
-    name: "Platinum",
-    price: 3499,
-    color: "bg-purple-500",
-    features: [
-      "Deluxe Setup",
-      "4K Projector",
-      "Premium Seating",
-      "Gourmet Meal",
-      "Photography Service",
-    ],
-  },
-};
 
 const timeSlots = ["10:00 AM", "1:00 PM", "4:00 PM", "7:00 PM"];
 
@@ -70,11 +39,13 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   location,
   selectedSlot,
   selectedDate,
+  packages,
 }) => {
   const { user, userData } = useAuth();
   const navigate = useNavigate();
   const [selectedPackage, setSelectedPackage] =
-    useState<keyof typeof packages>("gold");
+    useState<string>("gold");
+  const [standardDuration, setStandardDuration] = useState<'2hr' | '3hr'>('2hr');
   const [coupon, setCoupon] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -94,6 +65,29 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
   const handleDateChange = (date: string) => {
     // This function is no longer used in the new implementation
+  };
+
+  // Helper to determine if selectedDate is a weekend
+  const isWeekend = (() => {
+    if (!selectedDate) return false;
+    const date = new Date(selectedDate);
+    const day = date.getDay();
+    return day === 0 || day === 6; // Sunday=0, Saturday=6
+  })();
+
+  // Helper to get price for selected package and duration
+  const getSelectedPrice = () => {
+    if (!packages || !packages[selectedPackage]) return 0;
+    if (selectedPackage === 'standard') {
+      const pricing = packages.standard.pricing.filter((p: any) => p.label.toLowerCase().includes(standardDuration));
+      // Pick weekday or weekend price
+      const priceObj = pricing.find((p: any) => isWeekend ? p.label.toLowerCase().includes('weekend') : p.label.toLowerCase().includes('weekday'));
+      return priceObj ? priceObj.price : 0;
+    } else {
+      // For other packages, pick weekend or weekday price
+      const priceObj = packages[selectedPackage].pricing.find((p: any) => isWeekend ? p.label.toLowerCase().includes('weekend') : p.label.toLowerCase().includes('weekday'));
+      return priceObj ? priceObj.price : 0;
+    }
   };
 
   const handleBooking = async () => {
@@ -117,7 +111,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         date: selectedDate,
         slot: selectedSlot,
         package: selectedPackage,
-        price: packages[selectedPackage].price,
+        duration: selectedPackage === 'standard' ? standardDuration : '3hr',
+        price: getSelectedPrice(),
         coupon: coupon.trim() || null,
         createdAt: Timestamp.now(),
         status: "tentative",
@@ -147,7 +142,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     );
   }
 
-  const selectedPackageInfo = packages[selectedPackage];
+  const selectedPackageInfo = packages ? packages[selectedPackage] : null;
   const minDate = new Date().toISOString().split("T")[0];
 
   return (
@@ -159,35 +154,95 @@ export const BookingModal: React.FC<BookingModalProps> = ({
             <Package className="inline mr-2" size={16} />
             Choose Package
           </label>
-          <div className="grid grid-cols-1 gap-3">
-            {Object.entries(packages).map(([key, pkg]) => (
-              <button
-                key={key}
-                onClick={() => setSelectedPackage(key as keyof typeof packages)}
-                className={`p-3 rounded-lg border-2 transition-all ${
-                  selectedPackage === key
-                    ? "border-pink-500 bg-pink-50 dark:bg-pink-900/20"
-                    : "border-gray-200 dark:border-gray-700 hover:border-gray-300"
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className={`w-3 h-3 rounded-full ${pkg.color}`} />
-                    <span className="font-medium">{pkg.name}</span>
+          <div className="flex flex-col gap-4">
+            {packages && ["standard", "silver", "gold", "diamond"].map((key) => {
+              const pkg = packages[key];
+              if (!pkg) return null;
+              // Icon and color for each package
+              const iconMap: any = {
+                standard: <Check className="text-gray-700 bg-gray-100 rounded-full p-1" size={32} />,
+                silver: <Star className="text-yellow-500 bg-yellow-100 rounded-full p-1" size={32} />,
+                gold: <Crown className="text-yellow-700 bg-yellow-200 rounded-full p-1" size={32} />,
+                diamond: <Gem className="text-blue-500 bg-blue-100 rounded-full p-1" size={32} />,
+              };
+              const isSelected = selectedPackage === key;
+              // Get price for display
+              let displayPrice = 'N/A';
+              if (key === 'standard' && isSelected) {
+                displayPrice = `₹${getSelectedPrice()}`;
+              } else if (pkg.pricing && Array.isArray(pkg.pricing)) {
+                const priceObj = pkg.pricing.find((p: any) => isWeekend ? p.label?.toLowerCase().includes('weekend') : p.label?.toLowerCase().includes('weekday'));
+                displayPrice = priceObj ? `₹${priceObj.price}` : 'N/A';
+              }
+              return (
+                <div
+                  key={key}
+                  className={`flex flex-col w-full rounded-xl border-2 shadow-sm transition-all cursor-pointer focus:outline-none px-0
+                    ${isSelected ? 'border-pink-500 bg-pink-900/10' : 'border-gray-700 bg-black/60 hover:border-pink-400'}
+                  `}
+                  onClick={() => setSelectedPackage(key as string)}
+                >
+                  <div className="flex items-center justify-between w-full px-6 py-4">
+                    <div className="flex items-center gap-2">
+                      {iconMap[key]}
+                      <span className="font-bold text-lg capitalize text-white">{key}</span>
+                    </div>
+                    <div className="text-pink-400 font-bold text-2xl">{displayPrice}</div>
                   </div>
-                  <span className="text-lg font-bold text-pink-500">
-                    ₹{pkg.price}
-                  </span>
+                  {key === 'standard' && isSelected && (
+                    <div className="w-full px-6 pb-2 flex flex-col items-start">
+                      <label className="block text-xs font-medium text-gray-300 mb-1">
+                        Select Duration
+                      </label>
+                      <div className="flex gap-4">
+                        <label className="flex items-center gap-2">
+                          <span className="relative w-5 h-5">
+                            <input
+                              type="radio"
+                              name="standardDuration"
+                              value="2hr"
+                              checked={standardDuration === '2hr'}
+                              onChange={() => setStandardDuration('2hr')}
+                              className="appearance-none w-5 h-5 rounded-full border-2 border-pink-500 bg-transparent transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-pink-300 cursor-pointer"
+                            />
+                            {standardDuration === '2hr' && (
+                              <span className="absolute left-1/2 top-1/2 w-2.5 h-2.5 bg-pink-500 rounded-full -translate-x-1/2 -translate-y-1/2 pointer-events-none"></span>
+                            )}
+                          </span>
+                          <span className="text-xs text-white">2hr</span>
+                        </label>
+                        <label className="flex items-center gap-2">
+                          <span className="relative w-5 h-5">
+                            <input
+                              type="radio"
+                              name="standardDuration"
+                              value="3hr"
+                              checked={standardDuration === '3hr'}
+                              onChange={() => setStandardDuration('3hr')}
+                              className="appearance-none w-5 h-5 rounded-full border-2 border-pink-500 bg-transparent transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-pink-300 cursor-pointer"
+                            />
+                            {standardDuration === '3hr' && (
+                              <span className="absolute left-1/2 top-1/2 w-2.5 h-2.5 bg-pink-500 rounded-full -translate-x-1/2 -translate-y-1/2 pointer-events-none"></span>
+                            )}
+                          </span>
+                          <span className="text-xs text-white">3hr</span>
+                        </label>
+                      </div>
+                    </div>
+                  )}
+                  {/* Features/Inclusions inside each card */}
+                  {pkg.inclusions && (
+                    <ul className="flex flex-wrap gap-2 text-xs text-gray-200 px-6 pb-4">
+                      {pkg.inclusions.map((feature: string, i: number) => (
+                        <li key={i} className="bg-gray-800 border border-gray-700 rounded-full px-3 py-1 mb-1">
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
-                <div className="mt-2 flex flex-wrap gap-1">
-                  {pkg.features.map((feature, index) => (
-                    <Badge key={index} variant="outline" className="text-xs">
-                      {feature}
-                    </Badge>
-                  ))}
-                </div>
-              </button>
-            ))}
+              );
+            })}
           </div>
         </div>
         {/* Coupon Code Input */}

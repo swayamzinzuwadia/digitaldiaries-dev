@@ -13,7 +13,7 @@ import { Modal } from "./components/ui/Modal";
 import { AuthModal } from "./components/AuthModal";
 import { AdminPanel } from "./pages/AdminPanel";
 import { TestAPI } from "./pages/TestAPI";
-
+// import {PopulateScreens} from "./pages/populateScreens.tsx";
 function App() {
   const [showAuthModal, setShowAuthModal] = React.useState(false);
   return (
@@ -30,6 +30,7 @@ function App() {
               <AuthModal onSuccess={() => setShowAuthModal(false)} />
             </Modal>
             <main className="pt-20">
+              {/* {<PopulateScreens /> } */}
               <Routes>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/screens" element={<ScreensPage />} />
